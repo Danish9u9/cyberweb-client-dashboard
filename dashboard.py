@@ -2,67 +2,68 @@ import streamlit as st
 import pandas as pd
 import os
 
-# --- PAGE CONFIGURATION ---
+# Page Configuration
 st.set_page_config(page_title="CyberWeb Labs | Client Dashboard", page_icon="🛡️")
 
-# --- THE CLEANING FUNCTION (Our "Secret Sauce") ---
 def load_and_clean_data(file_path):
+    """
+    Loads sales data from CSV and performs cleaning operations:
+    - Date format standardization
+    - Numeric conversion for Sales
+    - Mean imputation for missing values
+    - Duplicate removal
+    - Profit calculation feature engineering
+    """
     if not os.path.exists(file_path):
         return None
 
     df = pd.read_csv(file_path)
     
-    # 1. Fix Dates
+    # Standardize data types
     df['Date'] = pd.to_datetime(df['Date'], format='mixed', errors='coerce')
-    
-    # 2. Fix Sales (Numeric Conversion)
-    # Note: We assign it back to the column!
     df['Sales'] = pd.to_numeric(df['Sales'], errors='coerce')
     
-    # 3. Handle Missing Sales (Impute with Mean)
+    # Handle missing values and duplicates
     mean_sales = df['Sales'].mean()
     df['Sales'] = df['Sales'].fillna(mean_sales)
     
-    # 4. Remove Duplicates
     df = df.drop_duplicates(subset='TransactionID', keep='first')
 
-    # 5. Feature Engineering: Calculate Profit (Assumed 20% Margin)
+    # Feature Engineering: Calculate Profit (20% Margin)
     df['Profit'] = df['Sales'] * 0.20
     
     return df
 
-# --- THE APP LAYOUT ---
+# Main App Layout
 st.title("🛡️ CyberWeb Labs Analytics")
 st.subheader("Secure Sales Intelligence Dashboard")
 
-# Sidebar for "Client" Controls
+# Sidebar
 st.sidebar.header("Control Panel")
 st.sidebar.info("System Status: Online 🟢")
 
-# Load the Data
+# Data Loading
 file_path = 'broken_sales.csv'
 df = load_and_clean_data(file_path)
 
 if df is not None:
-    # METRICS ROW (The "Executive Summary")
+    # Key Metrics Display
     total_sales = df['Sales'].sum()
     avg_sale = df['Sales'].mean()
-    
     total_profit = df['Profit'].sum()
     
-    col1, col2, col3 = st.columns(3) # Changed from 2 to 3
+    col1, col2, col3 = st.columns(3)
     col1.metric("Total Revenue", f"${total_sales:,.2f}")
-    col2.metric("Total Profit", f"${total_profit:,.2f}") # New Metric
-    col3.metric("Average Transaction", f"${avg_sale:,.2f}")
+    col2.metric("Total Profit", f"${total_profit:,.2f}")
+    col3.metric("Avg Transaction", f"${avg_sale:,.2f}")
 
     st.divider()
 
-    # CHART SECTION
+    # Visualization Section
     st.write("### 📈 Sales Trend Analysis")
-    # Streamlit has built-in charts. Simple and fast.
     st.line_chart(df.set_index('Date')['Sales'])
 
-    # RAW DATA TOGGLE
+    # Raw Data Inspector
     if st.checkbox("Show Raw Database Records"):
         st.write(df)
         
