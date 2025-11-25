@@ -25,6 +25,9 @@ def load_and_clean_data(file_path):
     
     # 4. Remove Duplicates
     df = df.drop_duplicates(subset='TransactionID', keep='first')
+
+    # 5. Feature Engineering: Calculate Profit (Assumed 20% Margin)
+    df['Profit'] = df['Sales'] * 0.20
     
     return df
 
@@ -45,9 +48,12 @@ if df is not None:
     total_sales = df['Sales'].sum()
     avg_sale = df['Sales'].mean()
     
-    col1, col2 = st.columns(2)
+    total_profit = df['Profit'].sum()
+    
+    col1, col2, col3 = st.columns(3) # Changed from 2 to 3
     col1.metric("Total Revenue", f"${total_sales:,.2f}")
-    col2.metric("Average Transaction", f"${avg_sale:,.2f}")
+    col2.metric("Total Profit", f"${total_profit:,.2f}") # New Metric
+    col3.metric("Average Transaction", f"${avg_sale:,.2f}")
 
     st.divider()
 
